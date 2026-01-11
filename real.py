@@ -56,6 +56,12 @@ class RealSenseYOLOCombined(Node):
     def depth_callback(self, msg):
         self.depth_image = self.bridge.imgmsg_to_cv2(msg, desired_encoding='16UC1')
 
+    def choose_target(self, candidates):
+        if not candidates:
+            return None
+        # Choose closest
+        return min(candidates, key=lambda c: c["depth_m"])
+
     def try_process(self):
         start_time = time.time()
         if self.color_image is None or self.depth_image is None or None in (self.fx, self.fy, self.cx, self.cy):
@@ -71,23 +77,20 @@ class RealSenseYOLOCombined(Node):
         results = self.model.predict(frame, device=0, conf=0.5, verbose=True)
         yolo_time = (time.time() - t1) * 1000
 
-        # TIME: Depth processing and publishing (for all objects)
+        # TIME: Depth processing and publishing
         t2 = time.time()
-        found_any = False
         num_objects = 0
-    
+
+        candidates = []
+
         for result in results:
             boxes = result.boxes
             if boxes is None or len(boxes) == 0:
                 continue
-        
-            found_any = True
+
             for i,box in enumerate(boxes):
                 num_objects += 1
-                obj_id = i
-                class_id = int(box.cls)
-                class_name = result.names[class_id]
-                
+
                 x1, y1, x2, y2 = map(int, box.xyxy[0].tolist())
                 cx_px, cy_px = (x1 + x2) // 2, (y1 + y2) // 2
 
@@ -109,10 +112,18 @@ class RealSenseYOLOCombined(Node):
                     rs_Z = depth_m
                     rviz_x, rviz_y = rs_Z, -rs_X
 
-                    self.publish_marker(rviz_x, rviz_y, 0.0, obj_id)
-                    xy_msg = Float64MultiArray()
-                    xy_msg.data = [rviz_x, rviz_y, float(obj_id)]
-                    self.xy_publisher.publish(xy_msg)
+                    candidates.append({
+                        "depth_m": depth_m,
+                        "rviz_x": rviz_x,
+                        "rviz_y": rviz_y
+                    })
+
+        target = self.choose_target(candidates)
+        if target is not None:
+            self.publish_marker(target["rviz_x"], target["rviz_y"], 0.0, 0)
+            xy_msg = Float64MultiArray()
+            xy_msg.data = [target["rviz_x"], target["rviz_y"], 0.0]
+            self.xy_publisher.publish(xy_msg)
 
         depth_publish_time = (time.time() - t2) * 1000
         
