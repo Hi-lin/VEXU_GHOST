@@ -1,5 +1,5 @@
 #include "rclcpp/rclcpp.hpp"
-#include "TCA9536.h"   // adjust include to whatever your header is called
+#include "ISL29125.h"   // adjust include to whatever your header is called
 
 int main(int argc, char ** argv)
 {
@@ -15,7 +15,7 @@ int main(int argc, char ** argv)
   RCLCPP_INFO(node->get_logger(), "GPIO expander starting: address=0x%X dev=%s",
               address, dev.c_str());
 
-  // TODO: construct I2C + TCA9536 objects here, then provide services/topics
+  // TODO: construct I2C + ISL29125 objects here, then provide services/topics
 
   rclcpp::spin(node);
   rclcpp::shutdown();

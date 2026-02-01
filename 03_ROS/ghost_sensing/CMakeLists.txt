@@ -45,7 +45,7 @@ ament_export_include_directories(${INCLUDE})
 ####################
 add_library(ghost_sensing SHARED
   src/I2C_interfacing.cpp
-  src/TCA9536.cpp
+  src/ISL29125.cpp
 )
 target_include_directories(ghost_sensing
   PUBLIC
