@@ -25,18 +25,15 @@ bool ISL29125::init() {
          return false;
      }
     
-     Initialize with defaults
+     //Initialize with defaults
 
      uint8_t colors = ALLCOLORS; // Default configuration value
      uint8_t sensor_range = LARGE_SENSOR_RANGE;
      uint8_t total = colors + sensor_range; // Default configuration value
 
-     if (!writeRegister(CONFIG_REG, total) ||          //set colors and range
-         !writeRegister(OFFSET_REG, DEFAULT_OFFSET) ||  // Set integration time
-      
-         return false;
-     }
- return true;
+     if (!writeRegister(CONFIG_REG, total)){return false;}          //set colors and range
+     if (!writeRegister(OFFSET_REG, DEFAULT_OFFSET)){ return false;}  //set integration time
+    return true;
 }
 
 bool ISL29125::deinit() {
@@ -61,7 +58,7 @@ bool ISL29125::setResolution(uint8_t range) { //0 =  16 bits; 1 = 12 bits
      return writeRegister(CONFIG_REG, CONFIG_REG_VALUE); // Enable with default config
 }
 
-bool ISL29125::setConversionTime(uint8_t range) { //0 = start at i2c write 0x01; 1 = start at rising edge of INT
+bool ISL29125::setConversionTime(uint8_t range) { //changes number of bits of resolution, higher resolution = longer conversion time. 0 = 4ms; 1 = 16ms
     int mask = 1<<5;
     int val = CONFIG_REG_VALUE & (mask); val = val >>5;
     if(val!=range){
@@ -101,7 +98,7 @@ bool ISL29125::SetInterupts(uint8_t interupts) {//0 = disable; 1 = 1 interupt; 2
     uint8_t regVal;
     readRegister(INTERUPT_REG, regVal);
     if(interupts == 0){
-        regVal &= 0xF7
+        regVal &= 0xF7;
         return writeRegister(INTERUPT_REG, regVal);
     }
     if(interupts <=4){
@@ -142,7 +139,8 @@ bool ISL29125::CheckInterrupt() {
     uint8_t status;
     if (!readRegister(STATUS_REG, status)) {
         //rip idk what to do
-        console.log("Failed to read STATUS register");
+        //console.log("Failed to read STATUS register");
+        return false;
     }
     // For example, assume AINT is bit 4
     return (status & 0x01);
@@ -152,7 +150,8 @@ bool ISL29125::CheckConversion() {
     uint8_t status;
     if (!readRegister(STATUS_REG, status)) {
         //rip idk what to do
-        console.log("Failed to read STATUS register");
+        //console.log("Failed to read STATUS register");
+        return false;
     }
     // For example, assume AINT is bit 4
     return (status & 0x02)>>1;
@@ -162,7 +161,7 @@ bool ISL29125::checkErrors() { //if error true
     uint8_t status;
     if (!readRegister(STATUS_REG, status)) {
         //rip idk what to do
-        console.log("Failed to read STATUS register");
+        //console.log("Failed to read STATUS register");
     }
     status ^= 0x02;
     status &= 0x07;
@@ -250,91 +249,6 @@ bool ISL29125::readBlueLight(uint16_t &blue) {
      return true;
 }
 
-// bool ISL29125::readProximity(uint8_t &prox) {
-//     sensor_data_t data;
-//     if (!readAllSensors(data)) {
-//         return false;
-//     }
-//     prox = data.proximity;
-//     return true;
-// }
-
-// bool ISL29125::enableProximitySensor(bool interrupts) {
-//     uint8_t regVal;
-//     if (!readRegister(ENABLE, regVal)) {
-//         return false;
-//     }
-//     // Set PEN (Proximity Enable, bit 2)
-//     regVal |= PROX_ENABLE;
-//     return writeRegister(ENABLE, regVal);
-// }
-
-// bool ISL29125::disableProximitySensor() {
-//     uint8_t regVal;
-//     if (!readRegister(ENABLE, regVal)) {
-//         return false;
-//     }
-//     regVal &= ~PROX_ENABLE; // clear PEN bit
-//     return writeRegister(ENABLE, regVal);
-// }
-
-// bool ISL29125::enableGestureSensor(bool interrupts) {
-//     uint8_t regVal;
-//     if (!readRegister(ENABLE, regVal)) {
-//         return false;
-//     }
-//     // Set GEN (Gesture Enable, bit 6) as an example.
-//     regVal |= GESTURE_ENABLE;
-//     // Optionally configure gesture-specific registers
-//     // ...existing code...
-//     return writeRegister(ENABLE, regVal);
-// }
-
-// bool ISL29125::disableGestureSensor() {
-//     uint8_t regVal;
-//     if (!readRegister(ENABLE, regVal)) {
-//         return false;
-//     }
-//     regVal &= ~GESTURE_ENABLE; // clear GEN bit
-//     return writeRegister(ENABLE, regVal);
-// }
-
-// bool ISL29125::isGestureAvailable() {
-//     uint8_t status;
-//     if (!readRegister(STATUS, status)) {
-//         return false;
-//     }
-//     // For example, assume GVALID is bit 0 (placeholder)
-//     return (status & GVALID) != 0;
-// }
-
-// int ISL29125::readGesture() {
-//     if (!isGestureAvailable()) {
-//         return DIR_NONE;
-//     }
-    
-//     uint8_t buf[4];
-//     if (!readRegisters(GFLVL, buf, 4)) {
-//         return DIR_NONE;
-//     }
-    
-//     uint8_t max_val = 0;
-//     int direction = DIR_NONE;
-    
-//     for(int i = 0; i < 4; i++) {
-//         if(buf[i] > max_val) {
-//             max_val = buf[i];
-//             switch(i) {
-//                 case 0: direction = DIR_UP; break;
-//                 case 1: direction = DIR_DOWN; break;
-//                 case 2: direction = DIR_LEFT; break;
-//                 case 3: direction = DIR_RIGHT; break;
-//             }
-//         }
-//     }
-    
-//     return direction;
-// }
 
 bool ISL29125::writeRegister(uint8_t reg, uint8_t data) {
     return (m_i2c_communication->write(reg, &data, 1) == 0);

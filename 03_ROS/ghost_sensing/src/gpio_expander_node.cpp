@@ -7,7 +7,7 @@ int main(int argc, char ** argv)
   auto node = std::make_shared<rclcpp::Node>("gpio_expander");
 
   // parameters (adjust names to match your team’s style)
-  node->declare_parameter<int>("address", 0x41);        // example
+  node->declare_parameter<uint8_t>("address", 0x41);        // example
   node->declare_parameter<std::string>("i2c_device", "/dev/i2c-1");
 
   const int address = node->get_parameter("address").as_int();

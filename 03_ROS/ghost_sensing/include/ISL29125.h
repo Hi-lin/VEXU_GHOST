@@ -29,7 +29,7 @@ public:
     static const uint8_t RED_HIGH          = 0x0C;
     static const uint8_t BLUE_LOW          = 0x0D;
     static const uint8_t BLUE_HIGH         = 0x0E;
-    static uint8_t CONFIG_REG_VALUE = 0B101; // Default value for all colors and large 
+    uint8_t CONFIG_REG_VALUE = 0B101; // Default value for all colors and large 
     static const uint8_t INTERUPT_REG      = 0x03;
     // Constructor / destructor
     ISL29125(std::shared_ptr<I2C_interfacing> iface, uint8_t address);
@@ -57,11 +57,24 @@ public:
     bool readProximity(uint8_t &prox);
 
     // Gesture sensor functions
-    bool enableGestureSensor(bool interrupts = true);
-    bool disableGestureSensor();
-    bool isGestureAvailable();
-    int  readGesture();
+    // bool enableGestureSensor(bool interrupts = true);
+    // bool disableGestureSensor();
+    // bool isGestureAvailable();
+    // int  readGesture();
 
+    bool checkErrors();
+    bool CheckConversion();
+    bool CheckInterrupt();
+    bool setIRCompensationRange(uint8_t comp);
+    bool setConversionTime(uint8_t range);
+    bool setSensingRange(uint8_t range);
+
+    bool setResolution(uint8_t range);
+
+    bool SetInterupts(uint8_t interupts);
+
+    bool SetHighThreshold(uint16_t threshold);
+    bool SetLowThreshold(uint16_t threshold);
     struct sensor_data_t {
         uint16_t red, green, blue, clear;
         uint8_t proximity;
